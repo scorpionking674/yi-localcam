@@ -1,0 +1,6 @@
+# state/logs the camera writes back onto a live card
+sd/yilocal/*.log
+sd/yilocal/*.txt
+!sd/yilocal/config/*.example
+*.o
+src/out/

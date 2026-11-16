@@ -1,0 +1,34 @@
+# YiLocal - Frigate starter configuration
+# Replace <CAM_IP> with the camera address (yilocal/CURRENT_IP.txt on the
+# card after boot, or your router's DHCP table).
+# Main stream contains H.264 + AAC microphone; sub stream is H.264 only.
+
+go2rtc:
+  streams:
+    yilocal:
+      - rtsp://<CAM_IP>:8554/main
+    yilocal_sub:
+      - rtsp://<CAM_IP>:8554/sub
+
+cameras:
+  yilocal:
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-copy
+      inputs:
+        - path: rtsp://127.0.0.1:8554/yilocal_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+        - path: rtsp://127.0.0.1:8554/yilocal
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+    detect:
+      width: 640
+      height: 360
+      fps: 5
+    live:
+      streams:
+        Main: yilocal
+        Sub: yilocal_sub

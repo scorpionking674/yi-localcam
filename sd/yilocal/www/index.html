@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0f14">
+  <title>YiLocal</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="mark">Y</div><div><strong>YiLocal</strong><span>local camera firmware</span></div></div>
+    <nav>
+      <button class="nav active" data-view="dashboard">Dashboard</button>
+      <button class="nav" data-view="network">Wi-Fi</button>
+      <button class="nav" data-view="streams">Streams & Frigate</button>
+      <button class="nav" data-view="system">System</button>
+    </nav>
+    <div class="sidebar-foot"><span class="dot" id="sideDot"></span><span id="sideState">Loading...</span></div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><h1 id="pageTitle">Dashboard</h1><p id="subtitle">Local-only camera control</p></div>
+      <div class="pill"><span class="dot" id="topDot"></span><span id="topStatus">Connecting</span></div>
+    </header>
+
+    <section class="view active" id="view-dashboard">
+      <div class="hero card">
+        <div><span class="eyebrow">YILOCAL v1.0.0</span><h2 id="heroState">Starting...</h2><p id="heroText">Reading live camera state.</p></div>
+        <div class="hero-badge"><span id="heroIP">-</span><small>camera IP</small></div>
+      </div>
+      <div class="grid metrics">
+        <div class="card metric"><span>Wi-Fi</span><strong id="ssid">-</strong><small id="wifiState">-</small></div>
+        <div class="card metric"><span>RTSP</span><strong id="rtsp">-</strong><small>TCP 8554</small></div>
+        <div class="card metric"><span>Media ring</span><strong id="ring">-</strong><small>H.264/AAC source</small></div>
+        <div class="card metric"><span>Yi network stack</span><strong id="yiCount">-</strong><small>processes remaining</small></div>
+      </div>
+      <div class="grid two">
+        <div class="card"><div class="card-title"><h3>Main stream</h3><span class="tag green">record + mic</span></div><p class="big">1920 x 1080</p><p>H.264 + AAC-LC 16 kHz mono.</p><div class="urlrow"><code id="mainUrl">rtsp://-:8554/main</code><button class="copy" data-copy="mainUrl">Copy</button></div></div>
+        <div class="card"><div class="card-title"><h3>Sub stream</h3><span class="tag">detect</span></div><p class="big">640 x 360</p><p>H.264 low-bandwidth detection stream.</p><div class="urlrow"><code id="subUrl">rtsp://-:8554/sub</code><button class="copy" data-copy="subUrl">Copy</button></div></div>
+      </div>
+      <div class="card notice"><strong>Replacement boundary</strong><p>Yi cloud, P2P, updater, recorder, telemetry-facing services, telnet and stock <code>tserver</code> are kept dead. <code>dispatch</code> + <code>rmm</code> remain temporarily as the hardware/media bridge while YiLocal replaces everything above them.</p></div>
+    </section>
+
+    <section class="view" id="view-network">
+      <div class="grid two">
+        <div class="card">
+          <div class="card-title"><h3>Current connection</h3><span class="tag" id="networkTag">-</span></div>
+          <dl class="kv"><dt>SSID</dt><dd id="nSsid">-</dd><dt>IP address</dt><dd id="nIp">-</dd><dt>Address mode</dt><dd id="nAddrMode">-</dd><dt>Gateway</dt><dd id="nGateway">-</dd><dt>BSSID</dt><dd id="nBssid">-</dd><dt>MAC</dt><dd id="nMac">-</dd><dt>Signal</dt><dd id="nSignal">-</dd></dl>
+          <button class="primary" id="scanBtn">Scan nearby Wi-Fi</button>
+        </div>
+        <div class="card">
+          <h3>Join Wi-Fi</h3><p class="muted">Credentials are saved to the YiLocal SD card. Wi-Fi changes retain the configured static/DHCP address mode.</p>
+          <label>SSID<input id="wifiSsid" maxlength="32" autocomplete="off" placeholder="Network name"></label>
+          <label>Password<input id="wifiPass" type="password" minlength="8" maxlength="63" autocomplete="new-password" placeholder="WPA/WPA2 password"></label>
+          <button class="primary" id="connectBtn">Connect</button>
+          <div class="result" id="wifiResult">No pending Wi-Fi change.</div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title"><h3>Nearby networks</h3><span class="tag" id="scanState">not scanned</span></div><div id="networks" class="networks"><p class="muted">Press Scan nearby Wi-Fi.</p></div></div>
+      <div class="card notice warn"><strong>If the IP changes</strong><p>Find MAC <code id="wifiMacHint">-</code> in your router/DHCP table, or read <code>yilocal/CURRENT_IP.txt</code> from the SD card.</p></div>
+    </section>
+
+    <section class="view" id="view-streams">
+      <div class="grid two">
+        <div class="card"><h3>RTSP endpoints</h3><p class="muted">This first build uses RTP interleaved over RTSP/TCP.</p><label>Main<code class="block" id="sMain">-</code></label><label>Sub<code class="block" id="sSub">-</code></label><button class="secondary" id="restartRtsp">Restart RTSP service</button></div>
+        <div class="card"><h3>Frigate intent</h3><p class="big">Sub = detect</p><p>Main = recording + AAC microphone. The generated config uses Frigate's bundled go2rtc restream so Frigate does not need extra direct camera connections.</p></div>
+      </div>
+      <div class="card"><div class="card-title"><h3>Frigate configuration</h3><button class="copy" data-copy="frigateConfig">Copy YAML</button></div><pre id="frigateConfig"></pre></div>
+    </section>
+
+    <section class="view" id="view-system">
+      <div class="grid two">
+        <div class="card"><h3>Runtime</h3><dl class="kv"><dt>YiLocal</dt><dd id="sysDc">v1.0.0</dd><dt>Vendor base</dt><dd id="sysVendor">-</dd><dt>Uptime</dt><dd id="sysUptime">-</dd><dt>Web server</dt><dd id="sysWeb">-</dd><dt>RTSP server</dt><dd id="sysRtsp">-</dd><dt>dispatch</dt><dd id="sysDispatch">-</dd><dt>rmm</dt><dd id="sysRmm">-</dd></dl></div>
+        <div class="card danger"><h3>Device control</h3><p class="muted">SD/RAM-only bring-up. This package does not program or erase the SPI NOR.</p><button class="dangerBtn" id="rebootBtn">Reboot camera</button></div>
+      </div>
+      <div class="card"><div class="card-title"><h3>YiLocal boot log</h3><button class="secondary small" data-loadlog="/api/log">Refresh</button></div><pre class="log" id="logBox">Select Refresh to load.</pre></div>
+      <div class="card"><div class="card-title"><h3>RTSP log</h3><button class="secondary small" data-loadlog="/api/rtsp-log">Refresh</button></div><pre class="log" id="rtspLogBox">Select Refresh to load.</pre></div>
+    </section>
+  </main>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
